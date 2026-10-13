@@ -6,8 +6,7 @@
 掲載物はすべて**見本**（実機の取扱説明書ではない）。
 
 - 公開: GitHub Pages（main / `docs`）
-  - トップ: https://angkor-byte.github.io/qr-manual-mvp/
-  - 管理画面: https://angkor-byte.github.io/qr-manual-mvp/app/login （「ログイン」を押すだけ）
+  - トップ: https://angkor-byte.github.io/qr-manual-mvp/ → ログイン画面（`app/login`）へ転送するだけ（「ログイン」を押すだけで入れる）
   - QR 画面: https://angkor-byte.github.io/qr-manual-mvp/app/q/QR-000123 （SK200-0001・提案資料と同じ番号）
   - 見本PDF: https://angkor-byte.github.io/qr-manual-mvp/m/QR-000123.pdf
 - 使用先: 大和建設名義「コベルコ建機トータルサポート様向け 重機QR 安全マニュアル管理のご提案」（2026-10）
