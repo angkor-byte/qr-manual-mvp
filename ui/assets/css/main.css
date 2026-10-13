@@ -1,0 +1,8 @@
+html, body { background: #f6f8fc; color: #1f2a4d; }
+body { line-break: strict; word-break: auto-phrase; }
+.card { background: #fff; border: 1px solid #dfe4f0; border-radius: 10px; }
+.tnum { font-variant-numeric: tabular-nums; }
+@media print {
+  .no-print { display: none !important; }
+  html, body { background: #fff; }
+}
