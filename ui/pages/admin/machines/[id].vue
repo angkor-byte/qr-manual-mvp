@@ -30,7 +30,6 @@ const fields = computed(() => {
     { label: '最終所在', value: d.location ? `${d.location.place ?? '位置あり'}（${fmtDate(d.location.at)}）` : '―' },
   ];
 });
-const weekReads = computed(() => data.value?.reads.days.reduce((n, d) => n + d.count, 0) ?? 0);
 const KIND: Record<string, { label: string; severity: string }> = {
   view: { label: '読み取り', severity: 'secondary' },
   inspection: { label: '出庫前点検', severity: 'success' },
@@ -110,7 +109,6 @@ const reissue = async () => {
             <p class="text-xs text-slate-500">点検・出庫・読み取りを、新しい順に表示します</p>
           </div>
           <div class="flex gap-2">
-            <div class="rounded-md bg-pale px-3 py-1.5 text-center"><p class="text-[11px] text-slate-500">直近7日の読み取り</p><p class="text-lg font-extrabold text-navy tnum leading-tight">{{ weekReads }}<span class="text-xs font-normal"> 回</span></p></div>
             <div v-if="data.reads.sinceShipment !== null" class="rounded-md bg-pale px-3 py-1.5 text-center"><p class="text-[11px] text-slate-500">出庫後の現場</p><p class="text-lg font-extrabold text-navy tnum leading-tight">{{ data.reads.sinceShipment }}<span class="text-xs font-normal"> 回</span></p></div>
             <div class="rounded-md bg-pale px-3 py-1.5 text-center"><p class="text-[11px] text-slate-500">累計</p><p class="text-lg font-extrabold text-navy tnum leading-tight">{{ data.reads.total }}<span class="text-xs font-normal"> 回</span></p></div>
           </div>
