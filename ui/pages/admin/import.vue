@@ -32,10 +32,10 @@ const download = () => {
       <h1 class="text-2xl font-extrabold text-navy">台帳の取込</h1>
       <p class="text-sm text-slate-500">今の機械台帳をCSVで一括登録します。登録と同時に、機番ごとにQRを発行します。</p>
     </div>
-    <div class="card p-5 space-y-3">
+    <div class="card p-4 md:p-5 space-y-3">
       <p class="text-sm">列：<b>機番, 機種コード, 機種名, 支社</b>（1行目は見出し。未登録の機種・支社は自動で作ります。登録済みの機番は飛ばします）</p>
       <Button label="見本CSVをダウンロード" icon="pi pi-download" severity="secondary" outlined size="small" @click="download" />
-      <input type="file" accept=".csv,text/csv" class="block text-sm" @change="(e) => (file = (e.target as HTMLInputElement).files?.[0] ?? null)">
+      <input type="file" accept=".csv,text/csv" class="block w-full text-sm" @change="(e) => (file = (e.target as HTMLInputElement).files?.[0] ?? null)">
       <Button label="取り込む" icon="pi pi-upload" :disabled="!file" :loading="busy" @click="submit" />
       <Message v-if="result" severity="success">
         {{ result.created }}台を登録しました。<template v-if="result.skipped.length">飛ばした行：{{ result.skipped.join('、') }}</template>

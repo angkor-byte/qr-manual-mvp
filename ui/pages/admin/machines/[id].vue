@@ -31,24 +31,24 @@ const reissue = async () => {
 <template>
   <div v-if="data" class="space-y-4">
     <div class="flex items-center justify-between flex-wrap gap-3">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-x-3 gap-y-1 flex-wrap">
         <Button icon="pi pi-arrow-left" text rounded @click="navigateTo('/admin')" />
         <h1 class="text-2xl font-extrabold text-navy">{{ data.machine.machineNo }}</h1>
         <span class="text-slate-600">{{ data.machine.model }}</span>
         <Tag :value="STATUS[data.machine.status]?.label" :severity="STATUS[data.machine.status]?.severity" />
       </div>
-      <div class="flex gap-2">
+      <div class="flex gap-2 flex-wrap">
         <Button v-if="active" label="QR画面を開く" icon="pi pi-external-link" severity="secondary" outlined @click="navigateTo(`/q/${active.code}`, { open: { target: '_blank' } })" />
         <Button label="QRラベルを印刷" icon="pi pi-print" severity="secondary" outlined @click="navigateTo(`/admin/qr/print?ids=${data.machine.id}`)" />
         <Button label="QRを再発行" icon="pi pi-refresh" severity="danger" outlined @click="reissue" />
       </div>
     </div>
 
-    <div class="grid lg:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div class="space-y-4">
         <div class="card p-4">
           <h2 class="font-bold text-navy mb-3">機械とQR</h2>
-          <div class="flex gap-4 items-start">
+          <div class="flex flex-col sm:flex-row gap-4 items-start">
             <QrSvg v-if="active" :code="active.code" class="w-28 h-28 shrink-0" />
             <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
               <dt class="text-slate-500">QR番号</dt><dd class="font-bold">{{ active?.code ?? '―' }}（有効）</dd>
@@ -68,7 +68,7 @@ const reissue = async () => {
             <Tag v-if="data.safetyFile?.loaded" severity="success" :value="`搭載確認済 ${fmtDate(data.safetyFile.at)}`" />
             <Tag v-else severity="danger" value="搭載未確認" />
           </div>
-          <DataTable :value="data.documents" size="small">
+          <div class="overflow-x-auto -mx-4 px-4"><DataTable :value="data.documents" size="small" :table-style="{ minWidth: '34rem' }">
             <Column header="書類"><template #body="{ data: d }"><span class="font-bold">{{ d.typeLabel }}</span><br><span class="text-xs text-slate-500">{{ d.title }}</span></template></Column>
             <Column header="単位"><template #body="{ data: d }">{{ SCOPE[d.scope] }}</template></Column>
             <Column header="公開中の版"><template #body="{ data: d }">{{ d.current ? `第${d.current.version}版` : '未登録' }}</template></Column>
@@ -80,7 +80,7 @@ const reissue = async () => {
               </template>
             </Column>
             <Column header=""><template #body="{ data: d }"><a v-if="d.current && active" :href="fileUrl(d.current.id, active.code)" target="_blank" class="text-brand text-sm"><i class="pi pi-file-pdf" /> 表示</a></template></Column>
-          </DataTable>
+          </DataTable></div>
           <p v-if="data.safetyFile" class="text-xs text-slate-500 mt-2">確認者：{{ data.safetyFile.by }}（出庫前点検）</p>
         </div>
       </div>

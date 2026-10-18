@@ -49,11 +49,11 @@ const reset = () => { q.value = ''; statuses.value = []; model.value = null; che
         <h1 class="text-2xl font-extrabold text-navy">機械一覧</h1>
         <p class="text-sm text-slate-500">安心ファイルが積まれているか・QRが読まれたかを、全支社で確認できます。</p>
       </div>
-      <div class="flex gap-2 items-center">
-        <Select v-model="branchId" :options="[{ id: null, name: 'すべての支社' }, ...(masters?.branches ?? [])]" option-label="name" option-value="id" placeholder="支社" class="w-44" />
-        <IconField>
+      <div class="flex gap-2 items-center flex-wrap w-full sm:w-auto">
+        <Select v-model="branchId" :options="[{ id: null, name: 'すべての支社' }, ...(masters?.branches ?? [])]" option-label="name" option-value="id" placeholder="支社" class="w-full sm:w-44" />
+        <IconField class="flex-1 sm:flex-none">
           <InputIcon class="pi pi-search" />
-          <InputText v-model="q" placeholder="機番・機種・出庫先" />
+          <InputText v-model="q" placeholder="機番・機種・出庫先" class="w-full" />
         </IconField>
         <Button icon="pi pi-refresh" severity="secondary" outlined :loading="pending" @click="refresh()" />
       </div>
@@ -79,7 +79,7 @@ const reset = () => { q.value = ''; statuses.value = []; model.value = null; che
     <div class="card px-4 py-3 flex items-center gap-3 flex-wrap">
       <span class="text-xs font-bold text-slate-500"><i class="pi pi-filter" /> 絞り込み</span>
       <SelectButton v-model="statuses" :options="STATUS_OPTIONS" option-label="label" option-value="value" multiple size="small" />
-      <Select v-model="model" :options="modelOptions" option-label="label" option-value="value" placeholder="機種" show-clear class="w-44" size="small" />
+      <Select v-model="model" :options="modelOptions" option-label="label" option-value="value" placeholder="機種" show-clear class="w-full sm:w-44" size="small" />
       <div class="flex items-center gap-3 flex-wrap">
         <label v-for="c in CHECK_OPTIONS" :key="c.value" class="flex items-center gap-1.5 text-sm cursor-pointer">
           <Checkbox v-model="checks" :value="c.value" :input-id="`chk-${c.value}`" />{{ c.label }}
@@ -89,10 +89,10 @@ const reset = () => { q.value = ''; statuses.value = []; model.value = null; che
       <Button v-if="filtering" label="解除" icon="pi pi-times" text size="small" @click="reset" />
     </div>
 
-    <div class="card overflow-hidden">
-      <DataTable :value="rows" :loading="pending" size="small" striped-rows sort-field="machineNo" :sort-order="1"
+    <div class="card overflow-x-auto">
+      <DataTable :value="rows" :table-style="{ minWidth: '60rem' }" :loading="pending" size="small" striped-rows sort-field="machineNo" :sort-order="1"
         :row-class="(r: Row) => (flagged.has(r.id) ? '!bg-rose-50' : '')" @row-click="(e) => navigateTo(`/admin/machines/${e.data.id}`)" class="cursor-pointer">
-        <Column field="machineNo" header="機番" sortable><template #body="{ data: r }"><span class="font-bold text-navy">{{ r.machineNo }}</span></template></Column>
+        <Column field="machineNo" header="機番" sortable><template #body="{ data: r }"><span class="font-bold text-navy whitespace-nowrap">{{ r.machineNo }}</span></template></Column>
         <Column field="model" header="機種" sortable />
         <Column field="branch" header="支社" sortable />
         <Column field="status" header="状態" sortable><template #body="{ data: r }"><Tag :value="STATUS[r.status]?.label" :severity="STATUS[r.status]?.severity" /></template></Column>

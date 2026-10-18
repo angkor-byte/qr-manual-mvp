@@ -18,24 +18,26 @@ const logout = () => {
 
 <template>
   <div class="min-h-screen flex flex-col">
-    <header class="no-print bg-navy text-white flex items-center justify-between px-5 h-14">
-      <NuxtLink to="/admin" class="font-bold tracking-wide">重機QR 安全マニュアル管理</NuxtLink>
-      <div v-if="me" class="flex items-center gap-4 text-sm text-indigo-100">
-        <span>{{ me.companyName }}　{{ me.name }}</span>
-        <Button label="ログアウト" icon="pi pi-sign-out" size="small" severity="secondary" text class="!text-indigo-100" @click="logout" />
+    <header class="no-print bg-navy text-white flex items-center justify-between gap-3 px-4 md:px-5 h-14">
+      <NuxtLink to="/admin" class="font-bold tracking-wide whitespace-nowrap">重機QR<span class="hidden sm:inline"> 安全マニュアル管理</span></NuxtLink>
+      <div v-if="me" class="flex items-center gap-2 md:gap-4 text-sm text-indigo-100 min-w-0">
+        <span class="hidden md:inline truncate">{{ me.companyName }}　{{ me.name }}</span>
+        <Button icon="pi pi-sign-out" size="small" severity="secondary" text class="!text-indigo-100 md:!hidden" aria-label="ログアウト" @click="logout" />
+        <Button label="ログアウト" icon="pi pi-sign-out" size="small" severity="secondary" text class="!text-indigo-100 !hidden md:!inline-flex" @click="logout" />
       </div>
     </header>
-    <div class="flex flex-1">
-      <nav class="no-print w-52 shrink-0 bg-white border-r border-slate-200 py-3">
+    <div class="flex flex-col md:flex-row flex-1 min-w-0">
+      <!-- スマホ・タブレット縦は上部の横スクロールタブ、md 以上は左メニュー -->
+      <nav class="no-print flex md:flex-col overflow-x-auto md:overflow-visible md:w-52 shrink-0 bg-white border-b md:border-b-0 md:border-r border-slate-200 md:py-3">
         <NuxtLink
           v-for="m in menu" :key="m.to" :to="m.to"
-          class="flex items-center gap-2 px-5 py-2.5 text-sm"
-          :class="active(m.to) ? 'bg-pale text-navy font-bold border-l-4 border-brand' : 'text-slate-600 hover:bg-slate-50 border-l-4 border-transparent'"
+          class="flex items-center gap-2 px-4 md:px-5 py-3 md:py-2.5 text-sm whitespace-nowrap border-b-2 md:border-b-0 md:border-l-4"
+          :class="active(m.to) ? 'bg-pale text-navy font-bold border-brand' : 'text-slate-600 hover:bg-slate-50 border-transparent'"
         >
           <i :class="m.icon" />{{ m.label }}
         </NuxtLink>
       </nav>
-      <main class="flex-1 p-6 min-w-0"><slot /></main>
+      <main class="flex-1 p-4 md:p-6 min-w-0"><slot /></main>
     </div>
   </div>
 </template>

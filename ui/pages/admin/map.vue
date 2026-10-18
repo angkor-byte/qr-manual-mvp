@@ -127,9 +127,9 @@ onBeforeUnmount(() => map?.remove());
         <h1 class="text-2xl font-extrabold text-navy">所在マップ</h1>
         <p class="text-sm text-slate-500">社員がQRを読んだ場所と日時から、機械の最新の所在を表示します。お客様が読んだときの位置は記録しません。</p>
       </div>
-      <IconField>
+      <IconField class="w-full sm:w-auto">
         <InputIcon class="pi pi-search" />
-        <InputText v-model="q" placeholder="機番・機種・場所で探す" class="w-64" />
+        <InputText v-model="q" placeholder="機番・機種・場所で探す" class="w-full sm:w-64" />
       </IconField>
     </div>
 
@@ -143,16 +143,16 @@ onBeforeUnmount(() => map?.remove());
       </button>
     </div>
 
-    <div class="grid lg:grid-cols-[1fr_22rem] gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_22rem] gap-4">
       <div class="card overflow-hidden relative">
-        <div ref="el" class="h-[34rem] z-0" />
+        <div ref="el" class="h-[22rem] md:h-[34rem] z-0" />
         <div class="absolute left-3 bottom-3 z-[500] bg-white/95 rounded-lg shadow px-3 py-2 text-xs space-y-1">
           <div v-for="(k, key) in KIND" :key="key" class="flex items-center gap-2"><span class="w-3 h-3 rounded-full inline-block" :style="{ background: k.color }" />{{ k.label }}</div>
           <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full inline-block border-2 border-dashed border-accent" />{{ STALE_DAYS }}日以上 更新なし</div>
         </div>
       </div>
 
-      <div class="card flex flex-col h-[34rem]">
+      <div class="card flex flex-col h-[24rem] lg:h-[34rem]">
         <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
           <span class="font-bold text-navy text-sm">機械 {{ shown.length }}台</span>
           <Button v-if="filter !== 'all' || q" label="絞り込みを解除" text size="small" @click="filter = 'all'; q = ''" />

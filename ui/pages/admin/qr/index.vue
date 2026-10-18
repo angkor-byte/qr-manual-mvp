@@ -17,8 +17,8 @@ const print = () => navigateTo(`/admin/qr/print?ids=${selected.value.map((l) => 
       </div>
       <Button :label="`選んだ ${selected.length} 台のラベルを印刷`" icon="pi pi-print" :disabled="!selected.length" @click="print" />
     </div>
-    <div class="card overflow-hidden">
-      <DataTable v-model:selection="selected" :value="data ?? []" data-key="machineId" size="small">
+    <div class="card overflow-x-auto">
+      <DataTable v-model:selection="selected" :value="data ?? []" data-key="machineId" size="small" :table-style="{ minWidth: '38rem' }">
         <Column selection-mode="multiple" header-style="width: 3rem" />
         <Column field="machineNo" header="機番"><template #body="{ data: l }"><b class="text-navy">{{ l.machineNo }}</b></template></Column>
         <Column field="model" header="機種" />
