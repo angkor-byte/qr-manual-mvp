@@ -17,6 +17,19 @@ const api = useApi();
 const toast = useToast();
 const { data, refresh } = await useAsyncData(`m-${route.params.id}`, () => api<Detail>(`/admin/machines/${route.params.id}`));
 const active = computed(() => data.value?.qr.find((q) => q.status === 'active'));
+const fields = computed(() => {
+  const d = data.value;
+  if (!d) return [];
+  const a = active.value;
+  return [
+    { label: 'QR番号', value: a ? `${a.code}（有効）` : '―' },
+    { label: '発行・貼付', value: a ? `${fmtDate(a.issuedAt, false)} 発行 ／ ${a.attachedAt ? fmtDate(a.attachedAt, false) + ' 貼付' : '未貼付'}` : '―', alert: !!a && !a.attachedAt },
+    { label: '所属', value: d.machine.branch },
+    { label: '出庫先', value: d.machine.rentedTo ?? '―' },
+    { label: '安心ファイル保管場所', value: d.machine.storageLocation || '―' },
+    { label: '最終所在', value: d.location ? `${d.location.place ?? '位置あり'}（${fmtDate(d.location.at)}）` : '―' },
+  ];
+});
 const weekReads = computed(() => data.value?.reads.days.reduce((n, d) => n + d.count, 0) ?? 0);
 const KIND: Record<string, { label: string; severity: string }> = {
   view: { label: '読み取り', severity: 'secondary' },
@@ -52,21 +65,20 @@ const reissue = async () => {
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="card p-4">
-          <h2 class="font-bold text-navy mb-3">機械とQR</h2>
-          <div class="flex flex-col sm:flex-row gap-4 items-start">
-            <QrSvg v-if="active" :code="active.code" class="w-36 h-36 shrink-0" />
-            <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-              <dt class="text-slate-500">QR番号</dt><dd class="font-bold">{{ active?.code ?? '―' }}（有効）</dd>
-              <dt class="text-slate-500">発行・貼付</dt><dd>{{ fmtDate(active?.issuedAt, false) }} 発行 ／ <span :class="!active?.attachedAt && 'text-accent font-bold'">{{ active?.attachedAt ? fmtDate(active.attachedAt, false) + ' 貼付' : '未貼付' }}</span></dd>
-              <dt class="text-slate-500">所属</dt><dd>{{ data.machine.branch }}</dd>
-              <dt class="text-slate-500">出庫先</dt><dd>{{ data.machine.rentedTo ?? '―' }}</dd>
-              <dt class="text-slate-500">最終所在</dt><dd>{{ data.location ? `${data.location.place ?? '位置あり'}（${fmtDate(data.location.at)}）` : '―' }}</dd>
-              <dt class="text-slate-500">安心ファイル保管場所</dt><dd>{{ data.machine.storageLocation || '―' }}</dd>
+    <div class="space-y-4">
+        <div class="card p-5">
+          <h2 class="font-bold text-navy mb-4">機械とQR</h2>
+          <div class="flex flex-col sm:flex-row gap-6 sm:items-center">
+            <QrSvg v-if="active" :code="active.code" class="w-32 h-32 shrink-0" />
+            <!-- 6項目を2列×3行で揃える（スマホは1列） -->
+            <dl class="flex-1 max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+              <div v-for="f in fields" :key="f.label" class="grid grid-cols-[9.5rem_1fr] items-baseline gap-x-3">
+                <dt class="text-sm text-slate-500">{{ f.label }}</dt>
+                <dd class="text-base font-bold text-navy" :class="f.alert && 'text-accent'">{{ f.value }}</dd>
+              </div>
             </dl>
           </div>
-          <p v-if="data.qr.length > 1" class="text-xs text-slate-500 mt-3">無効にしたQR：{{ data.qr.filter((q) => q.status === 'void').map((q) => q.code).join('、') }}</p>
+          <p v-if="data.qr.length > 1" class="text-xs text-slate-500 mt-4">無効にしたQR：{{ data.qr.filter((q) => q.status === 'void').map((q) => q.code).join('、') }}</p>
         </div>
 
         <div class="card p-4">
@@ -91,7 +103,7 @@ const reissue = async () => {
           <p v-if="data.safetyFile" class="text-xs text-slate-500 mt-2">確認者：{{ data.safetyFile.by }}（出庫前点検）</p>
         </div>
 
-      <div class="card p-4 lg:col-span-2">
+      <div class="card p-4">
         <div class="flex items-end justify-between flex-wrap gap-3 mb-3">
           <div>
             <h2 class="font-bold text-navy">履歴</h2>
