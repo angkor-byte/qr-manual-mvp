@@ -52,7 +52,7 @@ const reissue = async () => {
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="card p-4">
           <h2 class="font-bold text-navy mb-3">機械とQR</h2>
           <div class="flex flex-col sm:flex-row gap-4 items-start">

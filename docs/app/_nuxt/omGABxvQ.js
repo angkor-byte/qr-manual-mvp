@@ -1,1 +1,0 @@
-import{W as n,n as s,X as o}from"./DT2DGwnK.js";import{a as r,b as i,u as l}from"./Ciqj2jx5.js";const f=n(async()=>{let e,a;const t=r();if(!t.value)return s("/login");const u=i();if(!u.value)try{u.value=([e,a]=o(()=>l()("/auth/me")),e=await e,a(),e)}catch{return t.value=null,s("/login")}});export{f as default};
