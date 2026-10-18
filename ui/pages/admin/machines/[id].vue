@@ -8,7 +8,8 @@ interface Detail {
   safetyFile: { loaded: boolean; at: string; by: string } | null;
   reads: { days: { date: string; count: number }[]; sinceShipment: number | null; total: number };
   location: { lat: number; lng: number; place: string | null; at: string } | null;
-  timeline: { at: string; kind: string; label: string; place: string | null }[];
+  // 履歴は1件1行。種類・担当・内容・場所を分けて持つ（表の列にそのまま出す）
+  timeline: { at: string; kind: 'view' | 'inspection' | 'shipment' | 'transfer' | 'return'; actor: string; detail: string; place: string | null; ok?: boolean }[];
 }
 
 const route = useRoute();
@@ -16,7 +17,14 @@ const api = useApi();
 const toast = useToast();
 const { data, refresh } = await useAsyncData(`m-${route.params.id}`, () => api<Detail>(`/admin/machines/${route.params.id}`));
 const active = computed(() => data.value?.qr.find((q) => q.status === 'active'));
-const maxDay = computed(() => Math.max(1, ...(data.value?.reads.days.map((d) => d.count) ?? [1])));
+const weekReads = computed(() => data.value?.reads.days.reduce((n, d) => n + d.count, 0) ?? 0);
+const KIND: Record<string, { label: string; severity: string }> = {
+  view: { label: '読み取り', severity: 'secondary' },
+  inspection: { label: '出庫前点検', severity: 'success' },
+  shipment: { label: '出庫・交付', severity: 'info' },
+  transfer: { label: '回送', severity: 'warn' },
+  return: { label: '返却', severity: 'contrast' },
+};
 const SCOPE: Record<string, string> = { model: '機種', common: '全機種共通', machine: 'この機体' };
 const fileUrl = useFileUrl();
 
@@ -44,8 +52,7 @@ const reissue = async () => {
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <div class="space-y-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         <div class="card p-4">
           <h2 class="font-bold text-navy mb-3">機械とQR</h2>
           <div class="flex flex-col sm:flex-row gap-4 items-start">
@@ -83,32 +90,28 @@ const reissue = async () => {
           </DataTable></div>
           <p v-if="data.safetyFile" class="text-xs text-slate-500 mt-2">確認者：{{ data.safetyFile.by }}（出庫前点検）</p>
         </div>
-      </div>
 
-      <div class="space-y-4">
-        <div class="card p-4">
-          <h2 class="font-bold text-navy mb-1">読み取り回数（直近7日）</h2>
-          <p class="text-sm text-slate-500 mb-3">
-            <template v-if="data.reads.sinceShipment !== null">出庫後の現場 <b class="text-navy">{{ data.reads.sinceShipment }}回</b> ／ </template>累計 {{ data.reads.total }}回
-          </p>
-          <div class="flex items-end gap-2 h-28 border-b border-slate-200">
-            <div v-for="d in data.reads.days" :key="d.date" class="flex-1 flex flex-col items-center justify-end h-full">
-              <span class="text-xs text-slate-500 tnum">{{ d.count }}</span>
-              <div class="w-full bg-brand/70 rounded-t" :style="{ height: `${Math.max(4, (d.count / maxDay) * 80)}%` }" />
-            </div>
+      <div class="card p-4 lg:col-span-2">
+        <div class="flex items-end justify-between flex-wrap gap-3 mb-3">
+          <div>
+            <h2 class="font-bold text-navy">履歴</h2>
+            <p class="text-xs text-slate-500">点検・出庫・読み取りを、新しい順に表示します</p>
           </div>
-          <div class="flex gap-2 mt-1"><span v-for="d in data.reads.days" :key="d.date" class="flex-1 text-center text-xs text-slate-500">{{ +d.date.slice(5, 7) }}/{{ +d.date.slice(8) }}</span></div>
+          <div class="flex gap-2">
+            <div class="rounded-md bg-pale px-3 py-1.5 text-center"><p class="text-[11px] text-slate-500">直近7日の読み取り</p><p class="text-lg font-extrabold text-navy tnum leading-tight">{{ weekReads }}<span class="text-xs font-normal"> 回</span></p></div>
+            <div v-if="data.reads.sinceShipment !== null" class="rounded-md bg-pale px-3 py-1.5 text-center"><p class="text-[11px] text-slate-500">出庫後の現場</p><p class="text-lg font-extrabold text-navy tnum leading-tight">{{ data.reads.sinceShipment }}<span class="text-xs font-normal"> 回</span></p></div>
+            <div class="rounded-md bg-pale px-3 py-1.5 text-center"><p class="text-[11px] text-slate-500">累計</p><p class="text-lg font-extrabold text-navy tnum leading-tight">{{ data.reads.total }}<span class="text-xs font-normal"> 回</span></p></div>
+          </div>
         </div>
-
-        <div class="card p-4">
-          <h2 class="font-bold text-navy mb-3">履歴</h2>
-          <Timeline :value="data.timeline" class="text-sm">
-            <template #marker="{ item }">
-              <span class="w-3 h-3 rounded-full block" :class="{ 'bg-emerald-600': ['inspection', 'shipment'].includes(item.kind), 'bg-brand': !['inspection', 'shipment'].includes(item.kind) }" />
-            </template>
-            <template #opposite="{ item }"><span class="text-slate-500 tnum whitespace-nowrap">{{ fmtDate(item.at) }}</span></template>
-            <template #content="{ item }">{{ item.label }}<span v-if="item.place" class="text-slate-500">　{{ item.place }}</span></template>
-          </Timeline>
+        <div class="overflow-x-auto -mx-4 px-4">
+          <DataTable :value="data.timeline" size="small" striped-rows :table-style="{ minWidth: '34rem' }">
+            <Column header="日時" style="width: 9rem"><template #body="{ data: t }"><span class="tnum whitespace-nowrap">{{ fmtDate(t.at) }}</span></template></Column>
+            <Column header="種類" style="width: 8rem"><template #body="{ data: t }"><Tag :value="KIND[t.kind]?.label ?? t.kind" :severity="KIND[t.kind]?.severity" class="whitespace-nowrap" /></template></Column>
+            <Column header="担当・読んだ人" style="width: 10rem"><template #body="{ data: t }"><span class="whitespace-nowrap">{{ t.actor }}</span></template></Column>
+            <Column header="内容"><template #body="{ data: t }"><span :class="t.ok === false ? 'text-accent font-bold' : ''">{{ t.detail || '―' }}</span></template></Column>
+            <Column header="場所"><template #body="{ data: t }"><span class="whitespace-nowrap">{{ t.place || '―' }}</span></template></Column>
+            <template #empty><div class="py-6 text-center text-slate-400">まだ履歴はありません</div></template>
+          </DataTable>
         </div>
       </div>
     </div>
