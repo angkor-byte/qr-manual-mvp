@@ -56,7 +56,7 @@ const reissue = async () => {
         <div class="card p-4">
           <h2 class="font-bold text-navy mb-3">機械とQR</h2>
           <div class="flex flex-col sm:flex-row gap-4 items-start">
-            <QrSvg v-if="active" :code="active.code" class="w-28 h-28 shrink-0" />
+            <QrSvg v-if="active" :code="active.code" class="w-36 h-36 shrink-0" />
             <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
               <dt class="text-slate-500">QR番号</dt><dd class="font-bold">{{ active?.code ?? '―' }}（有効）</dd>
               <dt class="text-slate-500">発行・貼付</dt><dd>{{ fmtDate(active?.issuedAt, false) }} 発行 ／ <span :class="!active?.attachedAt && 'text-accent font-bold'">{{ active?.attachedAt ? fmtDate(active.attachedAt, false) + ' 貼付' : '未貼付' }}</span></dd>
