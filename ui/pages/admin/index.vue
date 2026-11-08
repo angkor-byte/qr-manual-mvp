@@ -60,7 +60,7 @@ const reset = () => { q.value = ''; statuses.value = []; model.value = null; che
           : '安心ファイルが積まれているか・QRが読まれたかを、全営業所で確認できます。' }}</p>
       </div>
       <div class="flex gap-2 items-center flex-wrap w-full sm:w-auto">
-        <Select v-if="!isOffice" v-model="officeId" :options="officeOptions" option-label="label" option-value="id" placeholder="営業所" class="w-full sm:w-56" />
+        <Select v-if="!isOffice" v-model="officeId" :options="officeOptions" option-label="label" option-value="id" placeholder="営業所" class="w-full sm:w-48" />
         <IconField class="flex-1 sm:flex-none">
           <InputIcon class="pi pi-search" />
           <InputText v-model="q" placeholder="機番・機種・出庫先" class="w-full" />

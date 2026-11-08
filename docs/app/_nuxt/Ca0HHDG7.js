@@ -1,0 +1,1 @@
+import{X as s,n as t,Y as r}from"./O3XcIX8J.js";import{a as i,b as l,u as c}from"./DiusJsLW.js";const p=s(async o=>{let e,u;const n=i();if(!n.value)return t("/login");const a=l();if(!a.value)try{a.value=([e,u]=r(()=>c()("/auth/me")),e=await e,u(),e)}catch{return n.value=null,t("/login")}if(o.meta.hqOnly&&a.value?.scope==="office")return t("/admin")});export{p as default};
