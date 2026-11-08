@@ -6,7 +6,7 @@
 掲載物はすべて**見本**（実機の取扱説明書ではない）。
 
 - 公開: GitHub Pages（main / `docs`）
-  - トップ: https://angkor-byte.github.io/qr-manual-mvp/ → ログイン画面（`app/login`）へ転送するだけ（「ログイン」を押すだけで入れる）
+  - トップ: https://angkor-byte.github.io/qr-manual-mvp/ → `app/login` へ転送。**「全体管理画面」と「営業所の画面」の2つの入口**を出す（ボタンを押すだけで入れる）
   - QR 画面: https://angkor-byte.github.io/qr-manual-mvp/app/q/QR-000123 （SK200-0001・提案資料と同じ番号）
   - 見本PDF: https://angkor-byte.github.io/qr-manual-mvp/m/QR-000123.pdf
 - 使用先: 大和建設名義「コベルコ建機トータルサポート様向け 重機QR 安全マニュアル管理のご提案」（2026-10）
@@ -34,6 +34,9 @@ rm -rf ../docs/app && cp -R .output/public ../docs/app && cp ../docs/app/200.htm
 `docs/404.html` は SPA のフォールバック（`/app/q/...` などを直接開いたときに画面を出す）。ビルドし直したら必ずコピーし直す。
 
 ## 仕様の要点（デモで見せていること）
+
+- **画面は2層**：全体管理画面（本社・資産統括部）＝全営業所を一覧し「営業所ごとの状況」で比べる／営業所の画面＝自分の営業所の機械・書類（閲覧のみ）・QR・所在だけ。台帳の取込と書類の登録・改版は本社だけ
+- 見える範囲はログインのトークンで決まる（`mock-token`＝全体、`mock-office-{ID}`＝その営業所）。絞り込みは `composables/mock.ts` が API の代わりに行う。営業所は `fixtures.json` の `/admin/masters.offices`（東海支社 名古屋・小牧／関西支社 大阪）
 
 - **QR は機体を指す**（`/q/{QR番号}`）。書類は機種に1回登録し、改版しても QR は貼り替え不要
 - 1台に有効な QR は常に1枚。再発行すると旧 QR は「無効」表示

@@ -2,7 +2,7 @@
 definePageMeta({ middleware: 'auth' });
 
 interface Row {
-  id: number; machineNo: string; model: string; modelCode: string; branch: string; status: string; rentedTo: string | null;
+  id: number; machineNo: string; model: string; modelCode: string; branch: string; office: string; officeId: number; status: string; rentedTo: string | null;
   safetyFile: { loaded: boolean; at: string } | null; qr: { code: string; attached: boolean } | null;
   lastRead: string | null; monthReads: number; readSinceShipment: boolean | null;
 }
@@ -12,11 +12,19 @@ interface Dash {
   rows: Row[];
 }
 
+interface OfficeSum extends Office { total: number; loaded: number; attached: number; monthReads: number; alerts: number; rented: number; unreadAfterShipment: number }
+
 const api = useApi();
-const branchId = ref<number | null>(null);
-const { data: masters } = await useAsyncData('masters', () => api<{ branches: { id: number; name: string }[] }>('/admin/masters'));
+const me = useMe();
+const isOffice = computed(() => me.value?.scope === 'office');
+const officeId = ref<number | null>(null);
+const { data: masters } = await useAsyncData('masters', () => api<{ offices: Office[] }>('/admin/masters'));
+const officeOptions = computed(() => [{ id: null, label: 'すべての営業所' }, ...(masters.value?.offices ?? []).map((o) => ({ id: o.id, label: `${o.branch} ${o.name}` }))]);
+// 全体管理画面だけ：営業所ごとの状況
+const { data: offices } = await useAsyncData('offices', () => (isOffice.value ? Promise.resolve(null) : api<OfficeSum[]>('/admin/offices')));
 const { data, refresh, pending } = await useAsyncData('dash', () =>
-  api<Dash>('/admin/dashboard', { query: branchId.value ? { branchId: branchId.value } : {} }), { watch: [branchId] });
+  api<Dash>('/admin/dashboard', { query: officeId.value ? { officeId: officeId.value } : {} }), { watch: [officeId] });
+const pickOffice = (id: number) => { officeId.value = officeId.value === id ? null : id; };
 const q = ref('');
 const statuses = ref<string[]>([]);
 const model = ref<string | null>(null);
@@ -46,11 +54,13 @@ const reset = () => { q.value = ''; statuses.value = []; model.value = null; che
   <div class="space-y-4">
     <div class="flex items-center justify-between gap-4 flex-wrap">
       <div>
-        <h1 class="text-2xl font-extrabold text-navy">機械一覧</h1>
-        <p class="text-sm text-slate-500">安心ファイルが積まれているか・QRが読まれたかを、全支社で確認できます。</p>
+        <h1 class="text-2xl font-extrabold text-navy">{{ isOffice ? `${me?.office?.name}の機械` : '機械一覧' }}</h1>
+        <p class="text-sm text-slate-500">{{ isOffice
+          ? 'この営業所の機械だけを表示しています。安心ファイルが積まれているか・QRが読まれたかを確認できます。'
+          : '安心ファイルが積まれているか・QRが読まれたかを、全営業所で確認できます。' }}</p>
       </div>
       <div class="flex gap-2 items-center flex-wrap w-full sm:w-auto">
-        <Select v-model="branchId" :options="[{ id: null, name: 'すべての支社' }, ...(masters?.branches ?? [])]" option-label="name" option-value="id" placeholder="支社" class="w-full sm:w-44" />
+        <Select v-if="!isOffice" v-model="officeId" :options="officeOptions" option-label="label" option-value="id" placeholder="営業所" class="w-full sm:w-56" />
         <IconField class="flex-1 sm:flex-none">
           <InputIcon class="pi pi-search" />
           <InputText v-model="q" placeholder="機番・機種・出庫先" class="w-full" />
@@ -58,6 +68,44 @@ const reset = () => { q.value = ''; statuses.value = []; model.value = null; che
         <Button icon="pi pi-refresh" severity="secondary" outlined :loading="pending" @click="refresh()" />
       </div>
     </div>
+
+    <div v-if="offices?.length" class="card overflow-x-auto">
+      <div class="px-4 pt-3 flex items-baseline justify-between gap-3 flex-wrap">
+        <p class="font-bold text-navy">営業所ごとの状況</p>
+        <p class="text-xs text-slate-500">行を押すと、その営業所の機械だけに絞り込みます</p>
+      </div>
+      <DataTable :value="offices" size="small" :table-style="{ minWidth: '46rem' }" data-key="id"
+        :row-class="(o: OfficeSum) => (o.id === officeId ? '!bg-pale font-bold' : '')" class="cursor-pointer" @row-click="(e) => pickOffice(e.data.id)">
+        <Column header="営業所"><template #body="{ data: o }"><span class="text-xs text-slate-500 mr-1">{{ o.branch }}</span><b class="text-navy whitespace-nowrap">{{ o.name }}</b></template></Column>
+        <Column header="機械" class="text-right"><template #body="{ data: o }"><span class="tnum">{{ o.total }}台</span></template></Column>
+        <Column header="出庫中" class="text-right"><template #body="{ data: o }"><span class="tnum">{{ o.rented }}台</span></template></Column>
+        <Column header="安心ファイル 搭載確認">
+          <template #body="{ data: o }">
+            <div class="flex items-center gap-2 min-w-[8rem]">
+              <ProgressBar :value="o.total ? Math.round((o.loaded / o.total) * 100) : 0" :show-value="false" class="!h-1.5 flex-1" />
+              <span class="tnum text-xs whitespace-nowrap">{{ o.loaded }}/{{ o.total }}</span>
+            </div>
+          </template>
+        </Column>
+        <Column header="QR貼付">
+          <template #body="{ data: o }">
+            <div class="flex items-center gap-2 min-w-[8rem]">
+              <ProgressBar :value="o.total ? Math.round((o.attached / o.total) * 100) : 0" :show-value="false" class="!h-1.5 flex-1" />
+              <span class="tnum text-xs whitespace-nowrap">{{ o.attached }}/{{ o.total }}</span>
+            </div>
+          </template>
+        </Column>
+        <Column header="今月の読取" class="text-right"><template #body="{ data: o }"><span class="tnum">{{ o.monthReads }}回</span></template></Column>
+        <Column header="要対応" class="text-right">
+          <template #body="{ data: o }"><Tag v-if="o.alerts" severity="danger" :value="`${o.alerts}件`" /><span v-else class="text-slate-400">なし</span></template>
+        </Column>
+      </DataTable>
+    </div>
+
+    <p v-if="!isOffice && officeId" class="text-sm text-slate-600 flex items-center gap-2">
+      <i class="pi pi-filter text-xs" />{{ officeOptions.find((o) => o.id === officeId)?.label }} の機械を表示中
+      <Button label="すべての営業所に戻す" text size="small" @click="officeId = null" />
+    </p>
 
     <div v-if="data" class="grid grid-cols-2 lg:grid-cols-5 gap-3">
       <div class="card p-4"><p class="text-xs text-slate-500">対象機械</p><p class="text-3xl font-extrabold text-navy tnum">{{ data.kpi.total }}<span class="text-sm font-normal text-slate-500"> 台</span></p></div>
@@ -94,7 +142,7 @@ const reset = () => { q.value = ''; statuses.value = []; model.value = null; che
         :row-class="(r: Row) => (flagged.has(r.id) ? '!bg-rose-50' : '')" @row-click="(e) => navigateTo(`/admin/machines/${e.data.id}`)" class="cursor-pointer">
         <Column field="machineNo" header="機番" sortable><template #body="{ data: r }"><span class="font-bold text-navy whitespace-nowrap">{{ r.machineNo }}</span></template></Column>
         <Column field="model" header="機種" sortable />
-        <Column field="branch" header="支社" sortable />
+        <Column v-if="!isOffice" field="office" header="営業所" sortable><template #body="{ data: r }"><span class="whitespace-nowrap">{{ r.office }}</span></template></Column>
         <Column field="status" header="状態" sortable><template #body="{ data: r }"><Tag :value="STATUS[r.status]?.label" :severity="STATUS[r.status]?.severity" /></template></Column>
         <Column field="rentedTo" header="出庫先"><template #body="{ data: r }">{{ r.rentedTo ?? '―' }}</template></Column>
         <Column header="安心ファイル搭載">

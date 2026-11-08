@@ -1,10 +1,11 @@
+import type { Office } from './mock';
 /** ログイン状態（モックなので中身は飾り。QR 画面ではこれがあると社員として扱う）。 */
 export const useToken = () => useCookie<string | null>('qr_token', { maxAge: 60 * 60 * 24 * 7, sameSite: 'lax' });
 
 /** データ取得。API は持たず、同梱のデモデータ（mock/fixtures.json）で返す。 */
 export const useApi = () => {
   const token = useToken();
-  return <T>(path: string, opts: { method?: string; query?: Record<string, unknown>; body?: unknown } = {}) => mockFetch<T>(path, opts, !!token.value);
+  return <T>(path: string, opts: { method?: string; query?: Record<string, unknown>; body?: unknown } = {}) => mockFetch<T>(path, opts, token.value);
 };
 
 /** 書類 PDF の URL（同梱の PDF を開く） */
@@ -13,7 +14,12 @@ export const useFileUrl = () => {
   return (versionId: number, _code: string) => `${base}mock-files/${versionId}.pdf`;
 };
 
-export interface Me { id: number; name: string; role: 'admin' | 'staff'; companyName: string }
+export interface Me {
+  id: number; name: string; role: 'admin' | 'staff'; companyName: string;
+  /** all＝全体管理画面（本社）／office＝営業所の画面 */
+  scope: 'all' | 'office';
+  office: Office | null;
+}
 export const useMe = () => useState<Me | null>('me', () => null);
 
 export const fmtDate = (v?: string | Date | null, withTime = true) => {

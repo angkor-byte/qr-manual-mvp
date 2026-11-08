@@ -9,6 +9,9 @@ interface Doc {
 }
 
 const api = useApi();
+const me = useMe();
+// 書類の登録・改版は本社だけ。営業所の画面では見るだけ
+const canEdit = computed(() => me.value?.scope !== 'office');
 const toast = useToast();
 const { data: masters } = await useAsyncData('masters', () => api<{ models: Model[]; docTypes: Record<string, string> }>('/admin/masters'));
 const route = useRoute();
@@ -59,11 +62,12 @@ const done = (d: Doc) => d.paper.filter((p) => p.upToDate).length;
       </div>
       <div class="flex gap-2 flex-wrap w-full sm:w-auto">
         <Select v-model="modelId" :options="masters?.models ?? []" :option-label="(m: Model) => `${m.code}（${m.name}）`" option-value="id" class="w-full sm:w-72" />
-        <Button label="書類を追加" icon="pi pi-plus" @click="add.open = true" />
+        <Button v-if="canEdit" label="書類を追加" icon="pi pi-plus" @click="add.open = true" />
       </div>
     </div>
 
-    <p v-if="data" class="text-sm text-slate-600">対象 <b>{{ data.machineCount }}台</b></p>
+    <Message v-if="!canEdit" severity="info" size="small" :closable="false">書類の登録と改版は本社（資産統括部）が行います。改版されると、この営業所の機械のQRにも自動で新しい版が表示されます。紙の差し替え状況は、この営業所の機械だけを表示しています。</Message>
+    <p v-if="data" class="text-sm text-slate-600">{{ canEdit ? '対象' : 'この営業所の対象' }} <b>{{ data.machineCount }}台</b></p>
 
     <div v-for="d in data?.documents ?? []" :key="d.id" class="card p-4 space-y-3">
       <div class="flex items-center justify-between flex-wrap gap-2">
@@ -72,7 +76,7 @@ const done = (d: Doc) => d.paper.filter((p) => p.upToDate).length;
           <span class="text-sm text-slate-500 ml-2 break-words">{{ d.title }}</span>
           <Tag class="ml-2" :value="d.scope === 'common' ? '全機種共通' : '機種'" severity="secondary" />
         </div>
-        <Button label="新しい版を登録" icon="pi pi-upload" size="small" @click="openUpload(d)" />
+        <Button v-if="canEdit" label="新しい版を登録" icon="pi pi-upload" size="small" @click="openUpload(d)" />
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div>

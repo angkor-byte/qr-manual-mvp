@@ -1,13 +1,15 @@
 <script setup lang="ts">
 const me = useMe();
 const route = useRoute();
-const menu = [
+const isOffice = computed(() => me.value?.scope === 'office');
+// 営業所の画面では、本社だけの作業（台帳の取込）を出さない
+const menu = computed(() => [
   { to: '/admin', label: '機械一覧', icon: 'pi pi-list' },
   { to: '/admin/documents', label: '安心ファイル書類', icon: 'pi pi-file-pdf' },
   { to: '/admin/qr', label: 'QR発行・印刷', icon: 'pi pi-qrcode' },
   { to: '/admin/map', label: '所在マップ', icon: 'pi pi-map-marker' },
-  { to: '/admin/import', label: '台帳の取込', icon: 'pi pi-upload' },
-];
+  ...(isOffice.value ? [] : [{ to: '/admin/import', label: '台帳の取込', icon: 'pi pi-upload' }]),
+]);
 const active = (to: string) => (to === '/admin' ? route.path === '/admin' || route.path.startsWith('/admin/machines') : route.path.startsWith(to));
 const logout = () => {
   useToken().value = null;
@@ -19,9 +21,14 @@ const logout = () => {
 <template>
   <div class="min-h-screen flex flex-col">
     <header class="no-print bg-navy text-white flex items-center justify-between gap-3 px-4 md:px-5 h-14">
-      <NuxtLink to="/admin" class="font-bold tracking-wide whitespace-nowrap">重機QR<span class="hidden sm:inline"> 安全マニュアル管理</span></NuxtLink>
+      <div class="flex items-center gap-3 min-w-0">
+        <NuxtLink to="/admin" class="font-bold tracking-wide whitespace-nowrap">重機QR<span class="hidden lg:inline"> 安全マニュアル管理</span></NuxtLink>
+        <span v-if="me" class="text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap truncate" :class="isOffice ? 'bg-amber-300 text-navy' : 'bg-white/15 text-white'">
+          <i :class="isOffice ? 'pi pi-map-marker' : 'pi pi-building'" class="text-[10px] mr-1" />{{ isOffice ? `${me.office?.branch} ${me.office?.name}` : '全体管理画面' }}
+        </span>
+      </div>
       <div v-if="me" class="flex items-center gap-2 md:gap-4 text-sm text-indigo-100 min-w-0">
-        <span class="hidden md:inline truncate">{{ me.companyName }}　{{ me.name }}</span>
+        <span class="hidden xl:inline truncate">{{ me.companyName }}　{{ me.name }}</span>
         <Button icon="pi pi-sign-out" size="small" severity="secondary" text class="!text-indigo-100 md:!hidden" aria-label="ログアウト" @click="logout" />
         <Button label="ログアウト" icon="pi pi-sign-out" size="small" severity="secondary" text class="!text-indigo-100 !hidden md:!inline-flex" @click="logout" />
       </div>

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth' });
 
-interface Label { machineId: number; machineNo: string; model: string; branch: string; code: string | null }
+interface Label { machineId: number; machineNo: string; model: string; branch: string; office: string; code: string | null }
 const api = useApi();
+const isOffice = computed(() => useMe().value?.scope === 'office');
 const { data } = await useAsyncData('labels-all', () => api<Label[]>('/admin/qr-labels'));
 const selected = ref<Label[]>([]);
 const print = () => navigateTo(`/admin/qr/print?ids=${selected.value.map((l) => l.machineId).join(',')}`);
@@ -22,7 +23,7 @@ const print = () => navigateTo(`/admin/qr/print?ids=${selected.value.map((l) => 
         <Column selection-mode="multiple" header-style="width: 3rem" />
         <Column field="machineNo" header="機番"><template #body="{ data: l }"><b class="text-navy">{{ l.machineNo }}</b></template></Column>
         <Column field="model" header="機種" />
-        <Column field="branch" header="支社" />
+        <Column v-if="!isOffice" field="office" header="営業所" />
         <Column field="code" header="QR番号" />
       </DataTable>
     </div>

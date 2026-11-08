@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth', layout: 'plain' });
 
-interface Label { machineId: number; machineNo: string; model: string; branch: string; company: string; code: string | null }
+interface Label { machineId: number; machineNo: string; model: string; branch: string; office: string; company: string; code: string | null }
 const route = useRoute();
 const { data } = await useAsyncData('labels', () => useApi()<Label[]>('/admin/qr-labels', { query: { ids: route.query.ids } }));
 const doPrint = () => window.print();
@@ -22,7 +22,7 @@ const doPrint = () => window.print();
           <div class="li">
             <b>{{ l.machineNo }}</b>
             <span>{{ l.model }}</span>
-            <span>{{ l.branch }}</span>
+            <span>{{ l.branch }} {{ l.office }}</span>
             <span class="code">{{ l.code }}</span>
           </div>
         </div>

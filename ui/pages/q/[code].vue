@@ -4,7 +4,7 @@ definePageMeta({ layout: 'plain' });
 interface DocItem { id: number; typeLabel: string; title: string; current: { id: number; version: number; publishedAt: string } }
 interface Lookup {
   status: 'active' | 'void'; code: string; message?: string; attached?: boolean; company?: string;
-  machine?: { id: number; machineNo: string; modelCode: string; modelName: string; branch: string; storageLocation: string; status?: string; rentedTo?: string | null };
+  machine?: { id: number; machineNo: string; modelCode: string; modelName: string; branch: string; office?: string; storageLocation: string; status?: string; rentedTo?: string | null };
   documents?: DocItem[]; staff?: { name: string } | null;
 }
 
@@ -77,7 +77,7 @@ const paper = (d: DocItem) => act('paper', { documentId: d.id }, `${d.typeLabel}
     <div v-else-if="data?.machine" class="p-5 space-y-5">
       <div>
         <p class="text-3xl font-extrabold text-navy">{{ data.machine.machineNo }}</p>
-        <p class="text-slate-600">{{ data.machine.modelName }}（{{ data.machine.modelCode }}）　{{ data.machine.branch }}</p>
+        <p class="text-slate-600">{{ data.machine.modelName }}（{{ data.machine.modelCode }}）　{{ data.machine.branch }} {{ data.machine.office }}</p>
         <p class="text-sm text-slate-500 mt-1"><i class="pi pi-box" /> 紙の安心ファイル：{{ data.machine.storageLocation || '出庫時にお渡し' }}</p>
       </div>
 

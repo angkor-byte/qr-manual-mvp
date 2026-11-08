@@ -1,4 +1,4 @@
-export default defineNuxtRouteMiddleware(async () => {
+export default defineNuxtRouteMiddleware(async (to) => {
   const token = useToken();
   if (!token.value) return navigateTo('/login');
   const me = useMe();
@@ -10,4 +10,6 @@ export default defineNuxtRouteMiddleware(async () => {
       return navigateTo('/login');
     }
   }
+  // 本社だけの画面（台帳の取込など）は、営業所の画面からは開けない
+  if (to.meta.hqOnly && me.value?.scope === 'office') return navigateTo('/admin');
 });

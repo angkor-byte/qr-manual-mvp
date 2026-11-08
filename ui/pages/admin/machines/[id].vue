@@ -2,7 +2,7 @@
 definePageMeta({ middleware: 'auth' });
 
 interface Detail {
-  machine: { id: number; machineNo: string; model: string; modelCode: string; branch: string; status: string; rentedTo: string | null; storageLocation: string };
+  machine: { id: number; machineNo: string; model: string; modelCode: string; branch: string; office: string; status: string; rentedTo: string | null; storageLocation: string };
   qr: { code: string; status: string; issuedAt: string; attachedAt: string | null }[];
   documents: { id: number; typeLabel: string; title: string; scope: string; current: { id: number; version: number; publishedAt: string; note: string } | null; paperVersion: number | null }[];
   safetyFile: { loaded: boolean; at: string; by: string } | null;
@@ -15,7 +15,7 @@ interface Detail {
 const route = useRoute();
 const api = useApi();
 const toast = useToast();
-const { data, refresh } = await useAsyncData(`m-${route.params.id}`, () => api<Detail>(`/admin/machines/${route.params.id}`));
+const { data, refresh, error } = await useAsyncData(`m-${route.params.id}`, () => api<Detail>(`/admin/machines/${route.params.id}`));
 const active = computed(() => data.value?.qr.find((q) => q.status === 'active'));
 const fields = computed(() => {
   const d = data.value;
@@ -24,7 +24,7 @@ const fields = computed(() => {
   return [
     { label: 'QR番号', value: a ? `${a.code}（有効）` : '―' },
     { label: '発行・貼付', value: a ? `${fmtDate(a.issuedAt, false)} 発行 ／ ${a.attachedAt ? fmtDate(a.attachedAt, false) + ' 貼付' : '未貼付'}` : '―', alert: !!a && !a.attachedAt },
-    { label: '所属', value: d.machine.branch },
+    { label: '所属', value: `${d.machine.branch} ${d.machine.office}` },
     { label: '出庫先', value: d.machine.rentedTo ?? '―' },
     { label: '安心ファイル保管場所', value: d.machine.storageLocation || '―' },
     { label: '最終所在', value: d.location ? `${d.location.place ?? '位置あり'}（${fmtDate(d.location.at)}）` : '―' },
@@ -125,5 +125,11 @@ const reissue = async () => {
         </div>
       </div>
     </div>
+  </div>
+  <div v-else-if="error" class="card p-8 text-center space-y-3 max-w-lg">
+    <i class="pi pi-lock text-3xl text-slate-400" />
+    <p class="font-bold text-navy">この機械は表示できません</p>
+    <p class="text-sm text-slate-500">ほかの営業所の機械は、営業所の画面からは見られません。</p>
+    <Button label="機械一覧へ戻る" icon="pi pi-arrow-left" text @click="navigateTo('/admin')" />
   </div>
 </template>
